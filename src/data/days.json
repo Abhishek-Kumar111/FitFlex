@@ -1,0 +1,37 @@
+[
+  {
+    "day": 1,
+    "title": "Day 1",
+    "subtitle": "Full Body Kickstart"
+  },
+  {
+    "day": 2,
+    "title": "Day 2",
+    "subtitle": "Upper Body Power"
+  },
+  {
+    "day": 3,
+    "title": "Day 3",
+    "subtitle": "Core & Lower Body"
+  },
+  {
+    "day": 4,
+    "title": "Day 4",
+    "subtitle": "Active Recovery"
+  },
+  {
+    "day": 5,
+    "title": "Day 5",
+    "subtitle": "High Intensity Cardio"
+  },
+  {
+    "day": 6,
+    "title": "Day 6",
+    "subtitle": "Full Body Burn"
+  },
+  {
+    "day": 7,
+    "title": "Day 7",
+    "subtitle": "Rest & Stretch"
+  }
+]
