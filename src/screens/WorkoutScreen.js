@@ -4,20 +4,45 @@ import {
   SafeAreaView,
   View,
   Text,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
 } from 'react-native';
+import WorkoutCard from '../components/WorkoutCard';
+import daysData from '../data/days.json';
 import colors from '../constants/colors';
 
 const WorkoutScreen = ({ route, navigation }) => {
-  const { title = 'Day 1' } = route.params || {};
+  const { day = 1 } = route.params || {};
+
+  // Retrieve current day workout data from local JSON
+  const dayItem = daysData.find((item) => item.day === day) || daysData[0];
+  const { title, subtitle, workouts = [] } = dayItem;
+
+  // Calculate total duration in seconds
+  const totalSeconds = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
+  const totalMinutes = Math.ceil(totalSeconds / 60);
+
+  const handleSelectWorkout = (workout) => {
+    navigation.navigate('WorkoutPlayer', {
+      workout,
+      dayTitle: title,
+    });
+  };
+
+  const renderWorkoutItem = ({ item }) => (
+    <WorkoutCard
+      workout={item}
+      onPress={() => handleSelectWorkout(item)}
+    />
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-      
-      {/* Navigation Top Bar */}
+
+      {/* Top Header Navigation */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -29,23 +54,27 @@ const WorkoutScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Main Content */}
-      <View style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.iconCircle}>
-            <Text style={styles.iconText}>⚡</Text>
-          </View>
-          
-          <Text style={styles.dayTitle}>{title}</Text>
-          
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>Workout Coming Soon</Text>
-          </View>
-
-          <Text style={styles.description}>
-            We are curating custom exercises and routines for this day. Check back soon for full instructions and guides!
-          </Text>
+      {/* Day Overview Banner */}
+      <View style={styles.heroSection}>
+        <View style={styles.badgeRow}>
+          <Text style={styles.dayBadge}>DAY {day}</Text>
+          <Text style={styles.summaryBadge}>{workouts.length} Exercises • ~{totalMinutes} min</Text>
         </View>
+        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
+      </View>
+
+      {/* Workout List */}
+      <View style={styles.listSection}>
+        <Text style={styles.sectionHeader}>TODAY'S WORKOUTS</Text>
+        
+        <FlatList
+          data={workouts}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderWorkoutItem}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
       </View>
     </SafeAreaView>
   );
@@ -83,64 +112,55 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
+  heroSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
-  card: {
-    backgroundColor: colors.cardBg,
-    width: '100%',
-    borderRadius: 24,
-    padding: 32,
+  badgeRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    marginBottom: 8,
   },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+  dayBadge: {
     backgroundColor: colors.badgeBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
+    color: colors.badgeText,
+    fontSize: 11,
+    fontWeight: '800',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginRight: 10,
   },
-  iconText: {
-    fontSize: 32,
+  summaryBadge: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  dayTitle: {
+  title: {
     color: colors.textPrimary,
     fontSize: 32,
     fontWeight: '800',
+    marginBottom: 4,
+  },
+  subtitle: {
+    color: colors.primary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  listSection: {
+    flex: 1,
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  sectionHeader: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
     marginBottom: 12,
   },
-  statusBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
-  },
-  statusText: {
-    color: colors.secondary,
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  description: {
-    color: colors.textSecondary,
-    fontSize: 14,
-    textAlign: 'center',
-    lineHeight: 20,
+  listContent: {
+    paddingBottom: 24,
   },
 });
 

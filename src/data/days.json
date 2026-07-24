@@ -2,36 +2,225 @@
   {
     "day": 1,
     "title": "Day 1",
-    "subtitle": "Full Body Kickstart"
+    "subtitle": "Full Body Kickstart",
+    "image": "fullbody.png",
+    "workouts": [
+      {
+        "id": 101,
+        "name": "Push Ups",
+        "duration": 30,
+        "reps": "15 reps",
+        "category": "Upper Body",
+        "instructions": "Keep your body in a straight line from head to heels. Lower your chest until it almost touches the floor, then push back up."
+      },
+      {
+        "id": 102,
+        "name": "Squats",
+        "duration": 40,
+        "reps": "20 reps",
+        "category": "Lower Body",
+        "instructions": "Stand with feet shoulder-width apart. Sit back into an imaginary chair while keeping your back straight and chest up."
+      },
+      {
+        "id": 103,
+        "name": "Plank",
+        "duration": 60,
+        "reps": "60 sec hold",
+        "category": "Core",
+        "instructions": "Maintain a forearm plank position. Engage your core and glutes, keeping hips level without sagging."
+      }
+    ]
   },
   {
     "day": 2,
     "title": "Day 2",
-    "subtitle": "Upper Body Power"
+    "subtitle": "Upper Body Power",
+    "image": "upperbody.png",
+    "workouts": [
+      {
+        "id": 201,
+        "name": "Diamond Push Ups",
+        "duration": 35,
+        "reps": "12 reps",
+        "category": "Triceps & Chest",
+        "instructions": "Place hands close together forming a diamond shape below your chest. Lower down with elbows tucked in."
+      },
+      {
+        "id": 202,
+        "name": "Pike Push Ups",
+        "duration": 40,
+        "reps": "12 reps",
+        "category": "Shoulders",
+        "instructions": "Invert body into an A-shape position with hips high. Bend elbows lowering crown of head towards the ground."
+      },
+      {
+        "id": 203,
+        "name": "Superman Hold",
+        "duration": 45,
+        "reps": "45 sec hold",
+        "category": "Back & Posture",
+        "instructions": "Lie face down on the mat. Simultaneously raise arms, chest, and legs off the ground, squeezing lower back."
+      }
+    ]
   },
   {
     "day": 3,
     "title": "Day 3",
-    "subtitle": "Core & Lower Body"
+    "subtitle": "Core & Lower Body",
+    "image": "core.png",
+    "workouts": [
+      {
+        "id": 301,
+        "name": "Walking Lunges",
+        "duration": 45,
+        "reps": "20 reps",
+        "category": "Legs & Glutes",
+        "instructions": "Step forward with right leg, lowering hips until both knees are bent at a 90-degree angle. Alternate legs."
+      },
+      {
+        "id": 302,
+        "name": "Bicycle Crunches",
+        "duration": 40,
+        "reps": "30 reps",
+        "category": "Abs & Obliques",
+        "instructions": "Lie on back, hands behind head. Touch right elbow to left knee while extending right leg. Switch side in a pedaling motion."
+      },
+      {
+        "id": 303,
+        "name": "Leg Raises",
+        "duration": 50,
+        "reps": "15 reps",
+        "category": "Lower Core",
+        "instructions": "Lie flat on your back. Keep legs straight and lift them towards the ceiling, then slowly lower without touching the floor."
+      }
+    ]
   },
   {
     "day": 4,
     "title": "Day 4",
-    "subtitle": "Active Recovery"
+    "subtitle": "Active Recovery",
+    "image": "recovery.png",
+    "workouts": [
+      {
+        "id": 401,
+        "name": "Cat-Cow Stretch",
+        "duration": 60,
+        "reps": "60 sec",
+        "category": "Mobility",
+        "instructions": "On all fours, alternate arching your back upwards (Cat) and dipping your spine down while lifting chest (Cow)."
+      },
+      {
+        "id": 402,
+        "name": "Child Pose Hold",
+        "duration": 60,
+        "reps": "60 sec hold",
+        "category": "Flexibility",
+        "instructions": "Kneel on mat, sit back on heels and extend arms forward on the floor. Breathe deeply and relax shoulders."
+      },
+      {
+        "id": 403,
+        "name": "Cobra Stretch",
+        "duration": 45,
+        "reps": "45 sec hold",
+        "category": "Abs & Spine",
+        "instructions": "Lie face down, place hands under shoulders and press up, extending arms to open chest and stretch abdominal wall."
+      }
+    ]
   },
   {
     "day": 5,
     "title": "Day 5",
-    "subtitle": "High Intensity Cardio"
+    "subtitle": "High Intensity Cardio",
+    "image": "cardio.png",
+    "workouts": [
+      {
+        "id": 501,
+        "name": "Jumping Jacks",
+        "duration": 45,
+        "reps": "45 sec",
+        "category": "Full Body Cardio",
+        "instructions": "Jump feet out wide while swinging arms overhead, then jump back to starting position at a steady rhythmic pace."
+      },
+      {
+        "id": 502,
+        "name": "Mountain Climbers",
+        "duration": 40,
+        "reps": "40 sec",
+        "category": "Cardio & Core",
+        "instructions": "Start in a high plank position. Alternately drive knees towards chest rapidly as if running in place."
+      },
+      {
+        "id": 503,
+        "name": "High Knees",
+        "duration": 30,
+        "reps": "30 sec",
+        "category": "Cardio",
+        "instructions": "Run in place driving knees up to hip height rapidly while pumping arms."
+      }
+    ]
   },
   {
     "day": 6,
     "title": "Day 6",
-    "subtitle": "Full Body Burn"
+    "subtitle": "Full Body Burn",
+    "image": "burn.png",
+    "workouts": [
+      {
+        "id": 601,
+        "name": "Burpees",
+        "duration": 45,
+        "reps": "12 reps",
+        "category": "Full Body",
+        "instructions": "Drop into a squat, kick feet back into a push-up position, perform a push-up, jump feet forward and explosively leap up."
+      },
+      {
+        "id": 602,
+        "name": "Russian Twists",
+        "duration": 40,
+        "reps": "30 twists",
+        "category": "Obliques",
+        "instructions": "Sit with knees bent, feet slightly off ground. Rotate torso left and right, touching ground on each side."
+      },
+      {
+        "id": 603,
+        "name": "Jump Squats",
+        "duration": 35,
+        "reps": "15 reps",
+        "category": "Explosive Legs",
+        "instructions": "Perform a standard squat, then explosively jump upwards extending legs fully before landing softly into next squat."
+      }
+    ]
   },
   {
     "day": 7,
     "title": "Day 7",
-    "subtitle": "Rest & Stretch"
+    "subtitle": "Rest & Stretch",
+    "image": "rest.png",
+    "workouts": [
+      {
+        "id": 701,
+        "name": "Standing Hamstring Stretch",
+        "duration": 60,
+        "reps": "60 sec",
+        "category": "Leg Recovery",
+        "instructions": "Stand tall, hinge forward at hips with flat back, reaching towards toes to feel deep stretch along hamstrings."
+      },
+      {
+        "id": 702,
+        "name": "Shoulder Overhead Stretch",
+        "duration": 45,
+        "reps": "45 sec",
+        "category": "Upper Body Recovery",
+        "instructions": "Reach one arm overhead and bend elbow, pulling elbow gently with opposite hand behind head."
+      },
+      {
+        "id": 703,
+        "name": "Deep Breathing Meditation",
+        "duration": 120,
+        "reps": "2 mins",
+        "category": "Mindfulness",
+        "instructions": "Sit comfortably in a quiet space. Inhale deeply for 4 seconds, hold for 4, exhale slowly for 6 seconds."
+      }
+    ]
   }
 ]
