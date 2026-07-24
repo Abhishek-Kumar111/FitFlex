@@ -24,17 +24,18 @@ const WorkoutScreen = ({ route, navigation }) => {
   const totalSeconds = workouts.reduce((sum, w) => sum + (w.duration || 0), 0);
   const totalMinutes = Math.ceil(totalSeconds / 60);
 
-  const handleSelectWorkout = (workout) => {
+  const handleSelectWorkout = (index) => {
     navigation.navigate('WorkoutPlayer', {
-      workout,
+      workouts,
+      workoutIndex: index,
       dayTitle: title,
     });
   };
 
-  const renderWorkoutItem = ({ item }) => (
+  const renderWorkoutItem = ({ item, index }) => (
     <WorkoutCard
       workout={item}
-      onPress={() => handleSelectWorkout(item)}
+      onPress={() => handleSelectWorkout(index)}
     />
   );
 

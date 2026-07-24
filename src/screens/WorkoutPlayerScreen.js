@@ -1,5 +1,5 @@
 // src/screens/WorkoutPlayerScreen.js
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -12,63 +12,264 @@ import {
 import colors from '../constants/colors';
 
 const WorkoutPlayerScreen = ({ route, navigation }) => {
-  const { workout = {}, dayTitle = 'Workout' } = route.params || {};
+  const {
+    workouts = [],
+    workoutIndex = 0,
+    workout: fallbackWorkout = {},
+    dayTitle = 'Workout',
+  } = route.params || {};
+
+  // Track active exercise index in the day's workout list
+  const [currentIndex, setCurrentIndex] = useState(workoutIndex);
+  
+  // Resolve current active workout object
+  const currentWorkout =
+    workouts.length > 0 ? workouts[currentIndex] : fallbackWorkout;
+  
   const {
     name = 'Exercise',
     duration = 30,
     reps = '15 reps',
     category = 'Fitness',
     instructions,
-  } = workout;
+  } = currentWorkout || {};
+
+  // Timer states
+  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timerState, setTimerState] = useState('idle'); // 'idle' | 'running' | 'paused' | 'completed'
+
+  const timerRef = useRef(null);
+  const autoAdvanceRef = useRef(null);
+
+  // Helper to format seconds into MM:SS
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const formattedMins = mins < 10 ? `0${mins}` : `${mins}`;
+    const formattedSecs = secs < 10 ? `0${secs}` : `${secs}`;
+    return `${formattedMins}:${formattedSecs}`;
+  };
+
+  // Clear running timer interval
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  // Clear auto-advance timeout
+  const clearAutoAdvance = useCallback(() => {
+    if (autoAdvanceRef.current) {
+      clearTimeout(autoAdvanceRef.current);
+      autoAdvanceRef.current = null;
+    }
+  }, []);
+
+  // Reset timer when active workout changes
+  useEffect(() => {
+    stopTimer();
+    clearAutoAdvance();
+    setTimeLeft(duration);
+    setTimerState('idle');
+  }, [currentIndex, duration, stopTimer, clearAutoAdvance]);
+
+  // Clean up on component unmount
+  useEffect(() => {
+    return () => {
+      stopTimer();
+      clearAutoAdvance();
+    };
+  }, [stopTimer, clearAutoAdvance]);
+
+  // Next workout / Complete navigation
+  const handleNextWorkout = useCallback(() => {
+    stopTimer();
+    clearAutoAdvance();
+
+    if (currentIndex < workouts.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+    } else {
+      // Last workout completed
+      navigation.replace('WorkoutComplete', {
+        dayTitle,
+        totalExercises: workouts.length > 0 ? workouts.length : 1,
+      });
+    }
+  }, [currentIndex, workouts.length, dayTitle, navigation, stopTimer, clearAutoAdvance]);
+
+  // Countdown effect
+  useEffect(() => {
+    if (timerState === 'running') {
+      stopTimer();
+      timerRef.current = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            stopTimer();
+            setTimerState('completed');
+            return 0;
+          }
+          return prevTime - 1;
+        });
+      }, 1000);
+    } else {
+      stopTimer();
+    }
+  }, [timerState, stopTimer]);
+
+  // Auto-advance 2 seconds after completion
+  useEffect(() => {
+    if (timerState === 'completed') {
+      autoAdvanceRef.current = setTimeout(() => {
+        handleNextWorkout();
+      }, 2000);
+    }
+  }, [timerState, handleNextWorkout]);
+
+  // Control Handlers
+  const handleStart = () => {
+    setTimerState('running');
+  };
+
+  const handlePause = () => {
+    setTimerState('paused');
+  };
+
+  const handleResume = () => {
+    setTimerState('running');
+  };
+
+  const handleReset = () => {
+    stopTimer();
+    clearAutoAdvance();
+    setTimeLeft(duration);
+    setTimerState('idle');
+  };
+
+  const handlePreviousWorkout = () => {
+    if (currentIndex > 0) {
+      stopTimer();
+      clearAutoAdvance();
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleSkipWorkout = () => {
+    handleNextWorkout();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={colors.background} />
 
-      {/* Header Bar */}
+      {/* Header Bar with Back Button */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            stopTimer();
+            clearAutoAdvance();
+            navigation.goBack();
+          }}
           activeOpacity={0.7}
         >
           <Text style={styles.backArrow}>←</Text>
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>{dayTitle}</Text>
+        <Text style={styles.headerTitle}>
+          {dayTitle} ({currentIndex + 1}/{workouts.length || 1})
+        </Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* Exercise Visual Header */}
+        {/* Workout Name Header */}
         <View style={styles.displayCard}>
-          <View style={styles.iconCircle}>
-            <Text style={styles.heroIcon}>🏋️</Text>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>{category.toUpperCase()}</Text>
           </View>
           <Text style={styles.exerciseName}>{name}</Text>
+          <Text style={styles.repsSubtitle}>{reps}</Text>
         </View>
 
-        {/* Category, Duration & Reps Detail Grid */}
-        <View style={styles.detailsContainer}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>CATEGORY</Text>
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryBadgeText}>{category}</Text>
+        {/* Large Countdown Timer Display */}
+        <View style={styles.timerCard}>
+          <Text style={styles.timerLabel}>
+            {timerState === 'completed'
+              ? 'STATUS'
+              : timerState === 'running'
+              ? 'COUNTDOWN'
+              : timerState === 'paused'
+              ? 'PAUSED'
+              : 'READY'}
+          </Text>
+
+          {timerState === 'completed' ? (
+            <View style={styles.completedBadge}>
+              <Text style={styles.completedBadgeText}>Workout Completed!</Text>
+              <Text style={styles.autoAdvanceText}>Moving to next exercise in 2s...</Text>
             </View>
+          ) : (
+            <Text style={styles.timerDigits}>{formatTime(timeLeft)}</Text>
+          )}
+        </View>
+
+        {/* Action Controls (Start, Pause, Resume, Reset, Skip, Previous) */}
+        <View style={styles.controlsSection}>
+          
+          {/* Main Action Button (Start / Pause / Resume) */}
+          {timerState === 'idle' && (
+            <TouchableOpacity style={styles.btnPrimary} activeOpacity={0.8} onPress={handleStart}>
+              <Text style={styles.btnPrimaryText}>Start</Text>
+            </TouchableOpacity>
+          )}
+
+          {timerState === 'running' && (
+            <TouchableOpacity style={styles.btnWarning} activeOpacity={0.8} onPress={handlePause}>
+              <Text style={styles.btnWarningText}>Pause</Text>
+            </TouchableOpacity>
+          )}
+
+          {timerState === 'paused' && (
+            <View style={styles.pausedRow}>
+              <TouchableOpacity style={[styles.btnPrimary, { flex: 1, marginRight: 8 }]} activeOpacity={0.8} onPress={handleResume}>
+                <Text style={styles.btnPrimaryText}>Resume</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.btnSecondary, { flex: 1, marginLeft: 8 }]} activeOpacity={0.8} onPress={handleReset}>
+                <Text style={styles.btnSecondaryText}>Reset</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Secondary Controls (Previous, Reset, Skip) */}
+          <View style={styles.navControlsRow}>
+            <TouchableOpacity
+              style={[styles.btnNav, currentIndex === 0 && styles.btnDisabled]}
+              disabled={currentIndex === 0}
+              onPress={handlePreviousWorkout}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.btnNavText, currentIndex === 0 && styles.textDisabled]}>
+                ‹ Previous
+              </Text>
+            </TouchableOpacity>
+
+            {timerState !== 'paused' && (
+              <TouchableOpacity style={styles.btnResetSmall} onPress={handleReset} activeOpacity={0.7}>
+                <Text style={styles.btnResetSmallText}>Reset</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.btnNav}
+              onPress={handleSkipWorkout}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.btnNavText}>Skip ›</Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statBox}>
-              <Text style={styles.statLabel}>DURATION</Text>
-              <Text style={styles.statValue}>{duration} sec</Text>
-            </View>
-            
-            <View style={[styles.statBox, styles.statBoxRight]}>
-              <Text style={styles.statLabel}>REPS / SET</Text>
-              <Text style={styles.statValueAlt}>{reps}</Text>
-            </View>
-          </View>
         </View>
 
         {/* Instructions */}
@@ -76,7 +277,7 @@ const WorkoutPlayerScreen = ({ route, navigation }) => {
           <Text style={styles.instructionsTitle}>INSTRUCTIONS</Text>
           <Text style={styles.instructionsText}>
             {instructions ||
-              'Focus on controlled motion and proper form throughout the set. Breathe rhythmically and keep your core engaged.'}
+              'Keep your core engaged, maintain controlled breathing, and focus on proper form throughout.'}
           </Text>
         </View>
 
@@ -121,7 +322,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     color: colors.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
@@ -131,106 +332,172 @@ const styles = StyleSheet.create({
   },
   displayCard: {
     backgroundColor: colors.cardBg,
-    borderRadius: 24,
-    padding: 24,
+    borderRadius: 20,
+    padding: 20,
     alignItems: 'center',
-    marginVertical: 12,
-    borderWidth: 1,
-    borderColor: colors.cardBorder,
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.badgeBg,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginTop: 8,
     marginBottom: 14,
-  },
-  heroIcon: {
-    fontSize: 36,
-  },
-  exerciseName: {
-    color: colors.textPrimary,
-    fontSize: 28,
-    fontWeight: '800',
-    textAlign: 'center',
-  },
-  detailsContainer: {
-    marginBottom: 16,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.cardBg,
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.cardBorder,
-  },
-  detailLabel: {
-    color: colors.textSecondary,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
   },
   categoryBadge: {
     backgroundColor: colors.badgeBg,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
+    marginBottom: 8,
   },
-  categoryBadgeText: {
+  categoryText: {
     color: colors.primary,
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.2,
   },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  exerciseName: {
+    color: colors.textPrimary,
+    fontSize: 26,
+    fontWeight: '800',
+    textAlign: 'center',
   },
-  statBox: {
-    flex: 1,
+  repsSubtitle: {
+    color: colors.secondary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  timerCard: {
     backgroundColor: colors.cardBg,
+    borderRadius: 24,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  timerLabel: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  timerDigits: {
+    color: colors.textPrimary,
+    fontSize: 58,
+    fontWeight: '900',
+    letterSpacing: 2,
+    fontVariant: ['tabular-nums'],
+  },
+  completedBadge: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  completedBadgeText: {
+    color: colors.primary,
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  autoAdvanceText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  controlsSection: {
+    marginBottom: 20,
+  },
+  btnPrimary: {
+    backgroundColor: colors.primary,
+    height: 54,
     borderRadius: 16,
-    padding: 16,
-    marginRight: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  btnPrimaryText: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  btnWarning: {
+    backgroundColor: '#F59E0B',
+    height: 54,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  btnWarningText: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  pausedRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  btnSecondary: {
+    backgroundColor: colors.cardBg,
+    height: 54,
+    borderRadius: 16,
+    justify: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
-  statBoxRight: {
-    marginRight: 0,
-    marginLeft: 6,
-  },
-  statLabel: {
-    color: colors.textSecondary,
-    fontSize: 10,
+  btnSecondaryText: {
+    color: colors.textPrimary,
+    fontSize: 16,
     fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 6,
   },
-  statValue: {
+  navControlsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  btnNav: {
+    backgroundColor: colors.cardBg,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.cardBorder,
+  },
+  btnNavText: {
     color: colors.secondary,
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 14,
+    fontWeight: '700',
   },
-  statValueAlt: {
-    color: colors.primary,
-    fontSize: 22,
-    fontWeight: '800',
+  btnResetSmall: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  btnResetSmallText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  btnDisabled: {
+    opacity: 0.4,
+  },
+  textDisabled: {
+    color: colors.textSecondary,
   },
   instructionsCard: {
     backgroundColor: colors.cardBg,
     borderRadius: 16,
-    padding: 20,
+    padding: 18,
     borderWidth: 1,
     borderColor: colors.cardBorder,
   },
@@ -239,12 +506,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   instructionsText: {
     color: colors.textPrimary,
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 22,
   },
 });
 
